@@ -1,8 +1,18 @@
 local QBCore = exports['qb-core']:GetCoreObject()
+local Lang = Lang or Locale:new({
+    phrases = {},
+    warnOnMissing = true,
+    fallbackLang = 'en'
+})
 
 -- Function to check if player is admin
 local function IsPlayerAdmin(Player)
-    if Player.PlayerData.permission == "admin" or Player.PlayerData.permission == "god" then
+    -- Check multiple ways
+    if Player.PlayerData.group == "admin" or 
+       Player.PlayerData.group == "god" or
+       QBCore.Functions.HasPermission(Player.PlayerData.source, "admin") or 
+       QBCore.Functions.HasPermission(Player.PlayerData.source, "god") or
+       IsPlayerAceAllowed(Player.PlayerData.source, "command") then
         return true
     end
     return false
@@ -11,20 +21,20 @@ end
 -- Function to validate marker data
 local function ValidateMarkerData(data)
     if not data.type or data.type < 0 or data.type > 43 then
-        return false, Lang:t('error.invalid_type', {value = "marker"})
+        return false, "Invalid marker type"
     end
     if not data.scale or data.scale < 0.0 or data.scale > 10.0 then
-        return false, Lang:t('error.invalid_scale')
+        return false, "Invalid scale"
     end
     if not data.description or data.description == "" then
-        return false, Lang:t('error.invalid_description')
+        return false, "Description required"
     end
     if not data.color or 
        not data.color.r or data.color.r < 0 or data.color.r > 255 or
        not data.color.g or data.color.g < 0 or data.color.g > 255 or
        not data.color.b or data.color.b < 0 or data.color.b > 255 or
        not data.color.a or data.color.a < 0 or data.color.a > 255 then
-        return false, Lang:t('error.invalid_color')
+        return false, "Invalid color values"
     end
     return true, nil
 end
@@ -32,16 +42,16 @@ end
 -- Function to validate blip data
 local function ValidateBlipData(data)
     if not data.sprite or data.sprite < 0 or data.sprite > 826 then
-        return false, Lang:t('error.invalid_type', {value = "blip"})
+        return false, "Invalid blip sprite"
     end
     if not data.scale or data.scale < 0.0 or data.scale > 10.0 then
-        return false, Lang:t('error.invalid_scale')
+        return false, "Invalid scale"
     end
     if not data.color or data.color < 0 or data.color > 85 then
-        return false, Lang:t('error.invalid_color')
+        return false, "Invalid color"
     end
     if not data.description or data.description == "" then
-        return false, Lang:t('error.invalid_description')
+        return false, "Description required"
     end
     return true, nil
 end
@@ -63,18 +73,25 @@ RegisterNetEvent('rd-blips:server:createBlip', function(blipData)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     
-    if not Player then return end
+    if not Player then 
+        print("No player found")
+        return 
+    end
     
+
     -- Check if player is admin
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_permission'), 'error')
+        print("Permission denied for player:", Player.PlayerData.citizenid)
+        TriggerClientEvent('QBCore:Notify', src, 'You do not have permission', 'error', 3000)
         return
     end
+
+    print("Permission granted for player:", Player.PlayerData.citizenid)
 
     -- Validate blip data
     local isValid, errorMessage = ValidateBlipData(blipData)
     if not isValid then
-        TriggerClientEvent('QBCore:Notify', src, errorMessage, 'error')
+        TriggerClientEvent('QBCore:Notify', src, errorMessage, 'error', 3000)
         return
     end
 
@@ -90,9 +107,9 @@ RegisterNetEvent('rd-blips:server:createBlip', function(blipData)
     if id then
         blipData.id = id
         TriggerClientEvent('rd-blips:client:blipCreated', -1, blipData)
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('info.blip_created'), 'success')
+        TriggerClientEvent('QBCore:Notify', src, 'Blip created successfully', 'success', 3000)
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.failed_to_create', {value = "blip"}), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'Failed to create blip', 'error', 3000)
     end
 end)
 
@@ -105,14 +122,14 @@ RegisterNetEvent('rd-blips:server:createMarker', function(markerData)
     
     -- Check if player is admin
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'You do not have permission', 'error', 3000)
         return
     end
 
     -- Validate marker data
     local isValid, errorMessage = ValidateMarkerData(markerData)
     if not isValid then
-        TriggerClientEvent('QBCore:Notify', src, errorMessage, 'error')
+        TriggerClientEvent('QBCore:Notify', src, errorMessage, 'error', 3000)
         return
     end
 
@@ -127,9 +144,9 @@ RegisterNetEvent('rd-blips:server:createMarker', function(markerData)
     if id then
         markerData.id = id
         TriggerClientEvent('rd-blips:client:markerCreated', -1, markerData)
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('info.marker_created'), 'success')
+        TriggerClientEvent('QBCore:Notify', src, 'Marker created successfully', 'success', 3000)
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.failed_to_create', {value = "marker"}), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'Failed to create marker', 'error', 3000)
     end
 end)
 
@@ -142,16 +159,16 @@ RegisterNetEvent('rd-blips:server:removeBlip', function(blipId)
     
     -- Check if player is admin
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'You do not have permission', 'error', 3000)
         return
     end
 
     local success = MySQL.query.await('DELETE FROM rd_blips WHERE id = ?', {blipId})
     
     if success then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('info.blip_removed'), 'success')
+        TriggerClientEvent('QBCore:Notify', src, 'Blip removed successfully', 'success', 3000)
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.failed_to_remove', {value = "blip"}), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'Failed to remove blip', 'error', 3000)
     end
 end)
 
@@ -164,50 +181,66 @@ RegisterNetEvent('rd-blips:server:removeMarker', function(markerId)
     
     -- Check if player is admin
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'You do not have permission', 'error', 3000)
         return
     end
 
     local success = MySQL.query.await('DELETE FROM rd_markers WHERE id = ?', {markerId})
     
     if success then
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('info.marker_removed'), 'success')
+        TriggerClientEvent('QBCore:Notify', src, 'Marker removed successfully', 'success', 3000)
     else
-        TriggerClientEvent('QBCore:Notify', src, Lang:t('error.failed_to_remove', {value = "marker"}), 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'Failed to remove marker', 'error', 3000)
     end
 end)
 
 -- Register commands
-QBCore.Commands.Add('createblip', Lang:t('commands.create_blip'), {}, false, function(source)
+RegisterCommand('createblip', function(source)
     local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return end
+    
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', source, 'You do not have permission', 'error', 3000)
         return
     end
+    
     TriggerClientEvent('rd-blips:client:openBlipCreator', source)
-end, 'admin')
+end)
 
-QBCore.Commands.Add('removeblip', Lang:t('commands.remove_blip'), {{name = 'description', help = 'Blip description (optional)'}}, false, function(source)
+RegisterCommand('removeblip', function(source, args)
     local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return end
+    
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', source, 'You do not have permission', 'error', 3000)
         return
     end
-end, 'admin')
 
-QBCore.Commands.Add('createmarker', Lang:t('commands.create_marker'), {}, false, function(source)
+    local description = args[1]
+    TriggerClientEvent('rd-blips:client:removeBlip', source, description)
+end)
+
+RegisterCommand('createmarker', function(source)
     local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return end
+    
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', source, 'You do not have permission', 'error', 3000)
         return
     end
+    
     TriggerClientEvent('rd-blips:client:openMarkerCreator', source)
-end, 'admin')
+end)
 
-QBCore.Commands.Add('removemarker', Lang:t('commands.remove_marker'), {{name = 'description', help = 'Marker description (optional)'}}, false, function(source)
+RegisterCommand('removemarker', function(source, args)
     local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return end
+    
     if not IsPlayerAdmin(Player) then
-        TriggerClientEvent('QBCore:Notify', source, Lang:t('error.no_permission'), 'error')
+        TriggerClientEvent('QBCore:Notify', source, 'You do not have permission', 'error', 3000)
         return
     end
-end, 'admin')
+
+    local description = args[1]
+    TriggerClientEvent('rd-blips:client:removeMarker', source, description)
+end)

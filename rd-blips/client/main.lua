@@ -3,17 +3,52 @@ local PlayerData = {}
 local markers = {}
 local blips = {}
 
+-- Initialize Lang
+Lang = Lang or Locale:new({
+    phrases = Translations,
+    warnOnMissing = true
+})
+
 -- Function to create a blip
 local function CreateBlipForCoords(data)
-    local blip = AddBlipForCoord(data.coords.x, data.coords.y, data.coords.z)
-    SetBlipSprite(blip, data.sprite)
+    print("^2Creating blip with data^7")
+    print("Coords:", data.coords.x, data.coords.y, data.coords.z)
+    print("Sprite:", data.sprite)
+    print("Scale:", data.scale)
+    print("Color:", data.color)
+    print("Description:", data.description)
+
+    -- Create the blip at coordinates
+    local x = tonumber(data.coords.x)
+    local y = tonumber(data.coords.y)
+    local z = tonumber(data.coords.z)
+    
+    local blip = AddBlipForCoord(x, y, z)
+    
+    if not DoesBlipExist(blip) then
+        print("^1Failed to create blip^7")
+        return nil
+    end
+    
+    -- Set blip properties with error checking
+    local sprite = tonumber(data.sprite)
+    if sprite >= 1 and sprite <= 826 then
+        SetBlipSprite(blip, sprite)
+    else
+        SetBlipSprite(blip, 1) -- Default to standard blip if invalid sprite
+    end
+
     SetBlipDisplay(blip, 4)
-    SetBlipScale(blip, data.scale)
-    SetBlipColour(blip, data.color)
-    SetBlipAsShortRange(blip, true)
-    BeginTextCommandSetBlipName("STRING")
+    SetBlipScale(blip, tonumber(data.scale))
+    SetBlipColour(blip, tonumber(data.color))
+    SetBlipAsShortRange(blip, false)
+    
+    -- Set blip name
+    BeginTextCommandSetBlipName('STRING')
     AddTextComponentString(data.description)
     EndTextCommandSetBlipName(blip)
+    
+    print("^2Successfully created blip^7:", blip)
     return blip
 end
 
@@ -35,7 +70,9 @@ end
 local function UpdateBlipsForJob(jobName)
     -- Remove existing blips
     for _, blip in ipairs(blips) do
-        RemoveBlip(blip.handle)
+        if DoesBlipExist(blip.handle) then
+            RemoveBlip(blip.handle)
+        end
     end
     blips = {}
     
@@ -97,51 +134,108 @@ local function LoadMarkers()
     end)
 end
 
--- Command to create a marker
-RegisterCommand('createmarker', function()
-    if not PlayerData.job then return end
+-- Register Commands
+RegisterCommand('createblip', function()
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    
     local dialog = exports['qb-input']:ShowInput({
-        header = Lang:t('input.marker.header'),
+        header = "Create Blip",
         submitText = "Create",
         inputs = {
             {
-                text = Lang:t('input.marker.type'), 
-                name = "type",
+                text = "Sprite (0-826)",
+                name = "sprite",
                 type = "number",
                 isRequired = true
             },
             {
-                text = Lang:t('input.marker.scale'), 
+                text = "Scale (0.0-10.0)",
                 name = "scale",
                 type = "number",
                 isRequired = true
             },
             {
-                text = Lang:t('input.marker.description'),
+                text = "Color (0-85)",
+                name = "color",
+                type = "number",
+                isRequired = true
+            },
+            {
+                text = "Description",
                 name = "description",
                 type = "text",
                 isRequired = true
             },
             {
-                text = Lang:t('input.marker.red'),
+                text = "Job (leave empty for all)",
+                name = "job",
+                type = "text",
+                isRequired = false
+            }
+        }
+    })
+
+    if dialog then
+        local blipData = {
+            coords = coords,
+            sprite = tonumber(dialog.sprite),
+            scale = tonumber(dialog.scale),
+            color = tonumber(dialog.color),
+            description = dialog.description,
+            job = dialog.job ~= "" and dialog.job or "all"
+        }
+        print("Creating blip with data:", json.encode(blipData))
+        TriggerServerEvent('rd-blips:server:createBlip', blipData)
+    end
+end)
+
+RegisterCommand('createmarker', function()
+    local ped = PlayerPedId()
+    local coords = GetEntityCoords(ped)
+    
+    local dialog = exports['qb-input']:ShowInput({
+        header = "Create Marker",
+        submitText = "Create",
+        inputs = {
+            {
+                text = "Type (0-43)",
+                name = "type",
+                type = "number",
+                isRequired = true
+            },
+            {
+                text = "Scale (0.0-10.0)",
+                name = "scale",
+                type = "number",
+                isRequired = true
+            },
+            {
+                text = "Description",
+                name = "description",
+                type = "text",
+                isRequired = true
+            },
+            {
+                text = "Red (0-255)",
                 name = "red",
                 type = "number",
                 isRequired = true
             },
             {
-                text = Lang:t('input.marker.green'),
+                text = "Green (0-255)",
                 name = "green",
                 type = "number",
                 isRequired = true
             },
             {
-                text = Lang:t('input.marker.blue'),
+                text = "Blue (0-255)",
                 name = "blue",
                 type = "number",
                 isRequired = true
             },
             {
-                text = Lang:t('input.marker.alpha'),
+                text = "Alpha (0-255)",
                 name = "alpha",
                 type = "number",
                 isRequired = true
@@ -150,8 +244,6 @@ RegisterCommand('createmarker', function()
     })
 
     if dialog then
-        local ped = PlayerPedId()
-        local coords = GetEntityCoords(ped)
         local markerData = {
             coords = coords,
             type = tonumber(dialog.type),
@@ -168,7 +260,47 @@ RegisterCommand('createmarker', function()
     end
 end)
 
--- Command to remove closest marker
+RegisterCommand('removeblip', function(source, args)
+    local description = args[1]
+    if description then
+        for i, blip in ipairs(blips) do
+            if blip.data.description == description then
+                if DoesBlipExist(blip.handle) then
+                    RemoveBlip(blip.handle)
+                end
+                TriggerServerEvent('rd-blips:server:removeBlip', blip.data.id)
+                table.remove(blips, i)
+                break
+            end
+        end
+    else
+        local ped = PlayerPedId()
+        local coords = GetEntityCoords(ped)
+        local closestDist = math.huge
+        local closestBlip = nil
+        local closestIndex = nil
+
+        for i, blip in ipairs(blips) do
+            local dist = #(coords - vector3(blip.data.coords.x, blip.data.coords.y, blip.data.coords.z))
+            if dist < closestDist then
+                closestDist = dist
+                closestBlip = blip
+                closestIndex = i
+            end
+        end
+
+        if closestBlip and closestDist < Config.DefaultMarkerDistance then
+            if DoesBlipExist(closestBlip.handle) then
+                RemoveBlip(closestBlip.handle)
+            end
+            TriggerServerEvent('rd-blips:server:removeBlip', closestBlip.data.id)
+            table.remove(blips, closestIndex)
+        else
+            QBCore.Functions.Notify('You are too far from any blip', 'error')
+        end
+    end
+end)
+
 RegisterCommand('removemarker', function(source, args)
     local description = args[1]
     if description then
@@ -199,101 +331,39 @@ RegisterCommand('removemarker', function(source, args)
             TriggerServerEvent('rd-blips:server:removeMarker', closestMarker.id)
             table.remove(markers, closestIndex)
         else
-            QBCore.Functions.Notify(Lang:t('info.distance_too_far', {value = "marker"}), 'error')
+            QBCore.Functions.Notify('You are too far from any marker', 'error')
         end
     end
 end)
 
--- Command to create a blip
-RegisterCommand('createblip', function()
-    if not PlayerData.job then return end
-    local dialog = exports['qb-input']:ShowInput({
-        header = Lang:t('input.blip.header'),
-        submitText = "Create",
-        inputs = {
-            {
-                text = Lang:t('input.blip.sprite'),
-                name = "sprite",
-                type = "number",
-                isRequired = true
-            },
-            {
-                text = Lang:t('input.blip.scale'),
-                name = "scale",
-                type = "number",
-                isRequired = true
-            },
-            {
-                text = Lang:t('input.blip.color'),
-                name = "color",
-                type = "number",
-                isRequired = true
-            },
-            {
-                text = Lang:t('input.blip.description'),
-                name = "description",
-                type = "text",
-                isRequired = true
-            },
-            {
-                text = Lang:t('input.blip.job'),
-                name = "job",
-                type = "text",
-                isRequired = false
-            }
-        }
-    })
-
-    if dialog then
-        local ped = PlayerPedId()
-        local coords = GetEntityCoords(ped)
-        local blipData = {
-            coords = coords,
-            sprite = tonumber(dialog.sprite),
-            scale = tonumber(dialog.scale),
-            color = tonumber(dialog.color),
-            description = dialog.description,
-            job = dialog.job ~= "" and dialog.job or "all"
-        }
-        TriggerServerEvent('rd-blips:server:createBlip', blipData)
-    end
+-- Events
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    PlayerData = QBCore.Functions.GetPlayerData()
+    LoadBlips()
+    LoadMarkers()
 end)
 
--- Command to remove blip
-RegisterCommand('removeblip', function(source, args)
-    local description = args[1]
-    if description then
-        for i, blip in ipairs(blips) do
-            if blip.data.description == description then
-                RemoveBlip(blip.handle)
-                TriggerServerEvent('rd-blips:server:removeBlip', blip.data.id)
-                table.remove(blips, i)
-                break
-            end
-        end
-    else
-        local ped = PlayerPedId()
-        local coords = GetEntityCoords(ped)
-        local closestDist = math.huge
-        local closestBlip = nil
-        local closestIndex = nil
+RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
+    PlayerData.job = JobInfo
+    UpdateBlipsForJob(JobInfo.name)
+end)
 
-        for i, blip in ipairs(blips) do
-            local dist = #(coords - vector3(blip.data.coords.x, blip.data.coords.y, blip.data.coords.z))
-            if dist < closestDist then
-                closestDist = dist
-                closestBlip = blip
-                closestIndex = i
-            end
-        end
+-- IF-Multijob support
+RegisterNetEvent('IF-multijob:client:changeJob', function(job)
+    PlayerData.job = job
+    UpdateBlipsForJob(job.name)
+end)
 
-        if closestBlip and closestDist < Config.DefaultMarkerDistance then
-            RemoveBlip(closestBlip.handle)
-            TriggerServerEvent('rd-blips:server:removeBlip', closestBlip.data.id)
-            table.remove(blips, closestIndex)
-        else
-            QBCore.Functions.Notify(Lang:t('info.distance_too_far', {value = "blip"}), 'error')
-        end
+RegisterNetEvent('rd-blips:client:markerCreated', function(markerData)
+    CreateMarkerAt(markerData)
+    QBCore.Functions.Notify('Marker created successfully', 'success')
+end)
+
+RegisterNetEvent('rd-blips:client:blipCreated', function(blipData)
+    if blipData.job == 'all' or blipData.job == PlayerData.job.name then
+        local blip = CreateBlipForCoords(blipData)
+        blips[#blips + 1] = {handle = blip, data = blipData}
+        QBCore.Functions.Notify('Blip created successfully', 'success')
     end
 end)
 
@@ -325,36 +395,5 @@ CreateThread(function()
             end
         end
         Wait(sleep)
-    end
-end)
-
--- Events
-RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    PlayerData = QBCore.Functions.GetPlayerData()
-    LoadBlips()
-    LoadMarkers()
-end)
-
-RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
-    PlayerData.job = JobInfo
-    UpdateBlipsForJob(JobInfo.name)
-end)
-
--- IF-Multijob support
-RegisterNetEvent('IF-multijob:client:changeJob', function(job)
-    PlayerData.job = job
-    UpdateBlipsForJob(job.name)
-end)
-
-RegisterNetEvent('rd-blips:client:markerCreated', function(markerData)
-    CreateMarkerAt(markerData)
-    QBCore.Functions.Notify(Lang:t('info.marker_created'), 'success')
-end)
-
-RegisterNetEvent('rd-blips:client:blipCreated', function(blipData)
-    if blipData.job == 'all' or blipData.job == PlayerData.job.name then
-        local blip = CreateBlipForCoords(blipData)
-        blips[#blips + 1] = {handle = blip, data = blipData}
-        QBCore.Functions.Notify(Lang:t('info.blip_created'), 'success')
     end
 end)

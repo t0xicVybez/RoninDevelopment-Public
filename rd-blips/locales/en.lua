@@ -1,25 +1,27 @@
 local Translations = {
     commands = {
-        create_blip = "Create a new blip on the map",
-        remove_blip = "Remove a blip from the map",
-        create_marker = "Create a new marker at your location",
-        remove_marker = "Remove a marker"
+        create_blip = 'Create a new blip on the map',
+        remove_blip = 'Remove a blip from the map',
+        create_marker = 'Create a new marker at your location',
+        remove_marker = 'Remove a marker'
     },
     info = {
-        blip_created = "Blip created successfully",
-        blip_removed = "Blip removed successfully",
-        marker_created = "Marker created successfully",
-        marker_removed = "Marker removed successfully",
+        blip_created = "Blip created successfully!",
+        marker_created = "Marker created successfully!",
+        blip_removed = "Blip removed successfully!",
+        marker_removed = "Marker removed successfully!",
         distance_too_far = "You are too far from any %s",
-        not_found = "No %s found with that description"
+        not_found = "No %s found with that description",
+        creating_blip = "Creating new blip...",
+        creating_marker = "Creating new marker..."
     },
     error = {
-        no_permission = "You don't have permission to do this",
+        no_permission = "You don't have permission to do this!",
         failed_to_create = "Failed to create %s",
         failed_to_remove = "Failed to remove %s",
         invalid_type = "Invalid %s type",
         invalid_scale = "Invalid scale (must be between 0.0 and 10.0)",
-        invalid_color = "Invalid color value (must be between 0 and 255)",
+        invalid_color = "Invalid color value",
         invalid_description = "You must provide a description"
     },
     input = {
@@ -44,10 +46,7 @@ local Translations = {
     }
 }
 
-if GetConvar('qb_locale', 'en') == 'en' then
-    Lang = Locale:new({
-        phrases = Translations,
-        warnOnMissing = true,
-        fallbackLang = Lang,
-    })
-end
+Lang = Lang or Locale:new({
+    phrases = Translations,
+    warnOnMissing = true
+})
