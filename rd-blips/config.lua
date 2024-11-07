@@ -21,16 +21,30 @@ Config.DefaultMarkerColor = {          -- Default color for new markers
 
 -- Marker Types Reference (for admins)
 Config.MarkerTypes = {
-    ['cylinder'] = 1,
-    ['arrow'] = 2,
-    ['ring'] = 25,
-    ['chevron'] = 27,
-    ['horizontal_circle'] = 28,
-    ['plane'] = 33,
-    ['car'] = 36,
-    ['bike'] = 37,
-    ['at_symbol'] = 38,
+    ['CYLINDER'] = 1,
+    ['ARROW'] = 2,
+    ['RING'] = 25,
+    ['CHEVRON'] = 27,
+    ['HORIZONTAL_CIRCLE'] = 28,
+    ['VERTICAL_CIRCLE'] = 29,
+    ['PLANE'] = 33,
+    ['CAR'] = 36,
+    ['BIKE'] = 37,
+    ['NUMBER'] = 42
 }
+
+Config.DefaultMarker = {
+    Type = 1,           -- Cylinder
+    Scale = 1.0,
+    Color = {
+        r = 255,        -- Red
+        g = 0,          -- Green
+        b = 0,          -- Blue
+        a = 200         -- Alpha/Transparency
+    }
+}
+
+Config.DefaultMarkerDistance = 50.0  -- Distance to start rendering markers
 
 -- Blip Colors Reference (for admins)
 Config.BlipColors = {
