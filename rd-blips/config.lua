@@ -9,14 +9,7 @@ Config.Commands = {
 }
 
 -- Feature Flags
-Config.UseGsBlips = true         -- Enable gs_blips integration when available (true/False)
-
--- gs_blips specific configurations
-Config.GsBlips = {
-    DefaultCategory = 'Misc',     -- Default category for uncategorized blips
-    UseJobCategories = true,      -- Group blips by job categories
-    EnableDescriptions = true     -- Enable detailed descriptions in gs_blips info boxes
-}
+Config.UseGsBlips = true         -- Enable gs_blips integration when available (true/false)
 
 -- Defaults
 Config.DefaultMarkerDistance = 50.0    -- Distance to start rendering markers
@@ -27,6 +20,35 @@ Config.DefaultMarkerColor = {          -- Default color for new markers
     g = 0,
     b = 0,
     a = 100
+}
+
+-- gs_blips Configuration
+Config.GsBlips = {
+    DefaultCategory = 'General',           -- Default category for uncategorized blips
+    EnableDynamicDisplay = true,           -- Enable dynamic display updates (distance, etc.)
+    DisplayRefreshRate = 1000,             -- How often to refresh dynamic displays (ms)
+    ManagementThreadRate = 5000,           -- How often to run the management thread (ms)
+    UseJobCategories = true,               -- Group blips by job categories
+    EnableDescriptions = true              -- Enable detailed descriptions in gs_blips info boxes
+}
+
+-- Job-specific Configuration
+Config.JobEmojis = {
+    ['police'] = '👮',
+    ['ambulance'] = '🚑',
+    ['mechanic'] = '🔧',
+    ['taxi'] = '🚕',
+    ['realtor'] = '🏠',
+    ['all'] = '📍'
+}
+
+Config.JobColors = {
+    ['police'] = 3,      -- Blue
+    ['ambulance'] = 1,   -- Red
+    ['mechanic'] = 5,    -- Yellow
+    ['taxi'] = 5,        -- Yellow
+    ['realtor'] = 2,     -- Green
+    ['all'] = 0         -- White
 }
 
 -- Marker Types Reference (for admins)
@@ -43,19 +65,6 @@ Config.MarkerTypes = {
     ['NUMBER'] = 42
 }
 
-Config.DefaultMarker = {
-    Type = 1,           -- Cylinder
-    Scale = 1.0,
-    Color = {
-        r = 255,        -- Red
-        g = 0,          -- Green
-        b = 0,          -- Blue
-        a = 200         -- Alpha/Transparency
-    }
-}
-
-Config.DefaultMarkerDistance = 50.0  -- Distance to start rendering markers
-
 -- Blip Colors Reference (for admins)
 Config.BlipColors = {
     ['white'] = 0,
@@ -66,7 +75,7 @@ Config.BlipColors = {
     ['light_red'] = 6,
     ['violet'] = 7,
     ['pink'] = 8,
-    ['orange'] = 17,
+    ['orange'] = 17
 }
 
 -- Common Blip Sprites Reference (for admins)
@@ -105,4 +114,16 @@ Config.CommonBlipSprites = {
     ['ARMORY'] = 110,
     ['RADAR'] = 399,
     ['SURVIVAL'] = 361
+}
+
+-- Default Marker Configuration
+Config.DefaultMarker = {
+    Type = 1,           -- Cylinder
+    Scale = 1.0,
+    Color = {
+        r = 255,        -- Red
+        g = 0,          -- Green
+        b = 0,          -- Blue
+        a = 200         -- Alpha/Transparency
+    }
 }
