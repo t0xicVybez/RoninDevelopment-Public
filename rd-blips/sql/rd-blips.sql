@@ -27,6 +27,14 @@ CREATE TABLE IF NOT EXISTS `rd_markers` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- For existing installations we need to alter some tables
+ALTER TABLE `rd_blips`
+ADD COLUMN IF NOT EXISTS `details` text DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS `category` varchar(50) DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS `dynamic` tinyint(1) DEFAULT 1,
+ADD COLUMN IF NOT EXISTS `metadata` longtext DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN IF NOT EXISTS `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_blips_job ON rd_blips(job);
 CREATE INDEX IF NOT EXISTS idx_blips_category ON rd_blips(category);
