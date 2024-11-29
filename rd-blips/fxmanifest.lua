@@ -2,8 +2,8 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Ronin Development'
-description 'Blip & Marker Management System for QBCore'
-version '1.0.0'
+description 'Blip & Marker Management System for QBCore with gs_blips Support'
+version '1.1.0'
 
 shared_scripts {
     '@qb-core/shared/locale.lua',
@@ -25,4 +25,8 @@ dependencies {
     'qb-core',
     'oxmysql',
     'qb-input'
+}
+
+optional_dependencies {
+    'gs_blips'
 }
