@@ -8,6 +8,16 @@ Config.Commands = {
     ['removemarker'] = 'admin'    -- Only admins can remove markers
 }
 
+-- Feature Flags
+Config.UseGsBlips = true         -- Enable gs_blips integration when available (true/False)
+
+-- gs_blips specific configurations
+Config.GsBlips = {
+    DefaultCategory = 'Misc',     -- Default category for uncategorized blips
+    UseJobCategories = true,      -- Group blips by job categories
+    EnableDescriptions = true     -- Enable detailed descriptions in gs_blips info boxes
+}
+
 -- Defaults
 Config.DefaultMarkerDistance = 50.0    -- Distance to start rendering markers
 Config.DefaultBlipScale = 0.8          -- Default scale for new blips
