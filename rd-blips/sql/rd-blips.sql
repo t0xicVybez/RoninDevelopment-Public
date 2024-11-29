@@ -1,4 +1,4 @@
--- Create blips table
+-- Create blips table with enhanced metadata support
 CREATE TABLE IF NOT EXISTS `rd_blips` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `coords` longtext NOT NULL,
@@ -6,11 +6,17 @@ CREATE TABLE IF NOT EXISTS `rd_blips` (
     `scale` float NOT NULL,
     `color` int(11) NOT NULL,
     `description` varchar(255) NOT NULL,
+    `details` text DEFAULT NULL,
     `job` varchar(50) NOT NULL DEFAULT 'all',
+    `category` varchar(50) DEFAULT NULL,
+    `dynamic` tinyint(1) DEFAULT 1,
+    `metadata` longtext DEFAULT NULL,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Create markers table
+-- Create markers table (unchanged)
 CREATE TABLE IF NOT EXISTS `rd_markers` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `coords` longtext NOT NULL,
@@ -23,5 +29,6 @@ CREATE TABLE IF NOT EXISTS `rd_markers` (
 
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_blips_job ON rd_blips(job);
+CREATE INDEX IF NOT EXISTS idx_blips_category ON rd_blips(category);
 CREATE INDEX IF NOT EXISTS idx_blips_description ON rd_blips(description);
 CREATE INDEX IF NOT EXISTS idx_markers_description ON rd_markers(description);
