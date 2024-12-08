@@ -1,37 +1,45 @@
-# rd-blips - QBCore Blip & Marker Management System
+# rd-blips - Advanced Blip & Marker Management System
 
-A comprehensive FiveM resource for QBCore that enables administrators to create and manage blips and markers with advanced features including job-specific visibility and enhanced blip information display.
+A comprehensive FiveM resource for QBCore and QBox frameworks that enables administrators to create and manage blips and markers with advanced features including job-specific visibility, jobtype categorization, and enhanced blip information display.
 
 ## Features
 
 ### Core Functionality
 - Create and remove map blips through commands
 - Create and remove markers through commands
-- Job-specific blip visibility
-- Persistent storage in database
-- Support for IF-multijob
-- Admin-only access
-- Locale support
-- Configurable settings
+- Job and jobtype-specific blip visibility
+- Persistent storage in database with enhanced metadata
+- Support for multiple job systems
+- Admin-only access with enhanced permissions
+- Multi-framework support (QBCore/QBox)
+- Configurable settings with extensive options
 
 ### Enhanced Blip Features (with gs_blips)
 - Rich blip information display with titles and detailed descriptions
 - Category-based blip organization
 - Dynamic distance updates
-- Job-based categorization with custom icons
+- Job and jobtype-based categorization with custom icons
 - Real-time blip information updates
 - Custom blip metadata support
+- Enhanced category management
+
+### Job System
+- Support for multiple job frameworks
+- Jobtype categorization (LEO, Medical, Mechanic, etc.)
+- Automatic jobtype detection
+- Enhanced job-based permissions
+- Flexible job category configuration
 
 ## Dependencies
 
 ### Required Dependencies
-- QBCore Framework
+- QBCore Framework or QBox Framework
 - oxmysql
 - qb-input
 
 ### Optional Dependencies
-- IF-multijob (for multiple job support)
 - gs_blips (for enhanced blip features)
+- Multi-job system support (compatible with various job systems)
 
 ## Installation
 
@@ -42,23 +50,24 @@ A comprehensive FiveM resource for QBCore that enables administrators to create 
 
 2. **Import SQL**
    - Execute the `rd-blips.sql` file in your database
-   - For existing installations, run the upgrade SQL script to add new columns
+   - For existing installations, the resource will automatically handle database updates
 
 3. **Server Configuration**
    - Add `ensure rd-blips` to your `server.cfg`
-   - Ensure it loads after QBCore and its dependencies
+   - Ensure it loads after your core framework (QBCore/QBox) and dependencies
    - If using gs_blips, ensure it loads after gs_blips
 
-4. **Optional: gs_blips Integration**
-   - Install gs_blips if you want enhanced blip features
-   - Configure gs_blips options in config.lua
-   - Set `Config.UseGsBlips = true` to enable integration
+4. **Framework Configuration**
+   - The resource automatically detects your framework
+   - Manual configuration available in config.lua if needed
+   - Configure framework-specific options as needed
 
 ## Commands
 
 ### Blip Management
-- `/createblip` - Opens menu to create a new blip
-  - Enhanced options when using gs_blips:
+- `/createblip` - Opens enhanced menu to create a new blip
+  - Enhanced options:
+    - Job and jobtype selection
     - Detailed descriptions
     - Category assignment
     - Dynamic updates toggle
@@ -68,19 +77,30 @@ A comprehensive FiveM resource for QBCore that enables administrators to create 
   - Without description: Removes the closest blip
 
 ### Marker Management
-- `/createmarker` - Opens menu to create a new marker
+- `/createmarker` - Opens enhanced menu to create a new marker
 - `/removemarker [description]` - Removes a marker
   - With description: Removes the specific marker
   - Without description: Removes the closest marker
 
 ## Configuration
 
-The `config.lua` file now includes enhanced customization options:
+The `config.lua` file includes comprehensive customization options:
 
 ```lua
 Config = {
+    -- Framework Configuration
+    Framework = 'auto',  -- 'auto', 'qb', or 'qbx'
+
     -- Feature Flags
-    UseGsBlips = true,         -- Enable gs_blips integration
+    UseGsBlips = true,         
+    UseJobTypes = true,        
+
+    -- Job Configuration
+    JobTypeCategories = {
+        ['leo'] = {'police', 'sheriff', 'statepolice'},
+        ['medical'] = {'ambulance', 'doctor'},
+        -- Add more job categories...
+    },
 
     -- gs_blips Configuration
     GsBlips = {
@@ -88,19 +108,10 @@ Config = {
         EnableDynamicDisplay = true,
         DisplayRefreshRate = 1000,
         UseJobCategories = true,
-        EnableDescriptions = true
+        EnableDescriptions = true,
+        UseJobTypeCategories = true
     },
 
-    -- Job Configuration
-    JobEmojis = {
-        ['police'] = '👮',
-        ['ambulance'] = '🚑',
-        -- Add more job emojis...
-    },
-
-    -- Standard Configuration
-    DefaultMarkerDistance = 50.0,
-    DefaultBlipScale = 0.8,
     -- Additional configuration options...
 }
 ```
@@ -118,66 +129,72 @@ CREATE TABLE `rd_blips` (
     `description` varchar(255) NOT NULL,
     `details` text DEFAULT NULL,
     `job` varchar(50) NOT NULL DEFAULT 'all',
+    `jobtype` varchar(50) DEFAULT NULL,
     `category` varchar(50) DEFAULT NULL,
     `dynamic` tinyint(1) DEFAULT 1,
     `metadata` longtext DEFAULT NULL,
+    `created_by` varchar(50) DEFAULT NULL,
+    `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
-);
-```
-
-### Markers Table
-```sql
-CREATE TABLE `rd_markers` (
-    -- Marker table structure remains unchanged...
 );
 ```
 
 ## Enhanced Features Guide
 
-### Using gs_blips Integration
+### Jobtype System
 
-When gs_blips integration is enabled, you gain access to:
+The new jobtype system provides:
 
-1. **Rich Information Display**
-   - Detailed blip descriptions with emoji support
-   - Dynamic distance updates
-   - Custom categories based on jobs
+1. **Automatic Categorization**
+   - Automatic jobtype detection based on job
+   - Hierarchical job organization
+   - Enhanced blip filtering
 
-2. **Category Management**
-   - Blips are automatically categorized by job
-   - Custom category support for organization
-   - Enhanced filtering and management
+2. **Enhanced Permissions**
+   - Jobtype-based access control
+   - Flexible permission configuration
+   - Multi-level access system
 
-3. **Dynamic Updates**
-   - Real-time distance calculations
-   - Automatic display refreshing
-   - Custom update intervals
+### Framework Support
 
-4. **Extended Metadata**
-   - Support for custom blip data
-   - Enhanced job-specific information
-   - Detailed location descriptions
+The resource now supports:
+
+1. **Multiple Frameworks**
+   - QBCore Framework
+   - QBox Framework
+   - Automatic detection and configuration
+
+2. **Enhanced Integration**
+   - Framework-specific optimizations
+   - Automatic adaptation to framework features
+   - Consistent functionality across frameworks
 
 ## Permissions and Job System
 
-The permission system remains robust while adding new features:
+Enhanced permission system features:
 
-- All commands require admin permissions
-- Admins are determined by QBCore permission level
-- Both 'admin' and 'god' permission levels have access
-- Enhanced job-specific features with gs_blips integration
-- Improved categorization and filtering by job
+- Multi-framework permission support
+- Jobtype-based access control
+- Enhanced admin permission checking
+- Flexible configuration options
+- Improved job categorization
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Blip Enhancement Issues**
-   - Verify gs_blips is properly installed
-   - Check if Config.UseGsBlips is enabled
-   - Ensure proper load order in server.cfg
+1. **Framework Detection Issues**
+   - Verify framework installation
+   - Check load order in server.cfg
+   - Confirm framework version compatibility
 
-2. **Standard Troubleshooting**
+2. **Jobtype System Issues**
+   - Verify job configuration
+   - Check jobtype categories
+   - Confirm database structure
+
+3. **General Troubleshooting**
    - Verify admin permissions
    - Check database configuration
    - Confirm dependency installation
@@ -188,7 +205,7 @@ The permission system remains robust while adding new features:
 For support:
 1. Check the issues section in the GitHub repository
 2. Verify all dependencies are properly installed
-3. Ensure you're using compatible versions of all resources
+3. Ensure you're using compatible versions
 4. Review server console for error messages
 5. Confirm proper configuration settings
 
@@ -200,3 +217,4 @@ This project is licensed under the GNU General Public License v3.0 - see the LIC
 
 - Original development by Ronin Development
 - gs_blips integration support added in v1.1.0
+- QBox support and jobtype system added in v1.2.0
