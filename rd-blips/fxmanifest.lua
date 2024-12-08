@@ -30,5 +30,6 @@ dependencies {
 optional_dependencies {
     'gs_blips',
     'qb-core',
-    'qbx-core'
+    'qbx-core',
+    'IF-multijob'
 }
