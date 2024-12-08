@@ -1,5 +1,8 @@
 Config = {}
 
+-- Framework Configuration
+Config.Framework = 'auto'  -- 'auto', 'qb', or 'qbx'
+
 -- Command Permissions
 Config.Commands = {
     ['createblip'] = 'admin',     -- Only admins can create blips
@@ -22,6 +25,18 @@ Config.DefaultMarkerColor = {          -- Default color for new markers
     a = 100
 }
 
+-- Job and JobType Configuration
+Config.UseJobTypes = true              -- Enable jobtype-based blip filtering
+Config.DefaultJobType = 'all'          -- Default jobtype if none specified
+
+Config.JobTypeCategories = {           -- Group jobs by type
+    ['leo'] = {'police', 'sheriff', 'statepolice'},
+    ['medical'] = {'ambulance', 'doctor'},
+    ['mechanic'] = {'mechanic', 'tuner'},
+    ['business'] = {'taxi', 'realtor', 'restaurant'},
+    ['all'] = {'all'}
+}
+
 -- gs_blips Configuration
 Config.GsBlips = {
     DefaultCategory = 'General',           -- Default category for uncategorized blips
@@ -29,25 +44,50 @@ Config.GsBlips = {
     DisplayRefreshRate = 1000,             -- How often to refresh dynamic displays (ms)
     ManagementThreadRate = 5000,           -- How often to run the management thread (ms)
     UseJobCategories = true,               -- Group blips by job categories
-    EnableDescriptions = true              -- Enable detailed descriptions in gs_blips info boxes
+    EnableDescriptions = true,             -- Enable detailed descriptions in gs_blips info boxes
+    UseJobTypeCategories = true            -- Group blips by job type categories
 }
 
 -- Job-specific Configuration
 Config.JobEmojis = {
+    -- Law Enforcement
     ['police'] = '👮',
+    ['sheriff'] = '👮',
+    ['statepolice'] = '👮',
+    -- Medical
     ['ambulance'] = '🚑',
+    ['doctor'] = '⚕️',
+    -- Service
     ['mechanic'] = '🔧',
     ['taxi'] = '🚕',
     ['realtor'] = '🏠',
+    -- JobTypes
+    ['leo'] = '🚔',
+    ['medical'] = '🏥',
+    ['mechanic'] = '🔧',
+    ['business'] = '💼',
+    -- Default
     ['all'] = '📍'
 }
 
 Config.JobColors = {
+    -- Law Enforcement
     ['police'] = 3,      -- Blue
+    ['sheriff'] = 3,     -- Blue
+    ['statepolice'] = 3, -- Blue
+    -- Medical
     ['ambulance'] = 1,   -- Red
+    ['doctor'] = 1,      -- Red
+    -- Service
     ['mechanic'] = 5,    -- Yellow
     ['taxi'] = 5,        -- Yellow
     ['realtor'] = 2,     -- Green
+    -- JobTypes
+    ['leo'] = 3,         -- Blue
+    ['medical'] = 1,     -- Red
+    ['mechanic'] = 5,    -- Yellow
+    ['business'] = 2,    -- Green
+    -- Default
     ['all'] = 0         -- White
 }
 
@@ -127,3 +167,15 @@ Config.DefaultMarker = {
         a = 200         -- Alpha/Transparency
     }
 }
+
+-- Helper function to get jobtype from job
+Config.GetJobType = function(job)
+    for jobType, jobs in pairs(Config.JobTypeCategories) do
+        for _, jobName in ipairs(jobs) do
+            if jobName == job then
+                return jobType
+            end
+        end
+    end
+    return Config.DefaultJobType
+end
