@@ -659,6 +659,19 @@ RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
     end
 end)
 
+-- Specific support for IF-Multijob
+RegisterNetEvent('IF-multijob:client:changeJob', function(job)
+    if not job then return end
+    PlayerData.job = job
+    Wait(100) -- Small delay to ensure job update is processed
+    
+    if Config.UseJobTypes then
+        UpdateBlipsForJobType(Config.GetJobType(job.name))
+    else
+        UpdateBlipsForJob(job.name)
+    end
+end)
+
 -- Support for multi-job systems
 RegisterNetEvent('qb-core:client:OnJobChange', function(JobInfo)
     PlayerData.job = JobInfo
