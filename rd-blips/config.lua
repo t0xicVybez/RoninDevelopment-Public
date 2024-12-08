@@ -13,6 +13,7 @@ Config.Commands = {
 
 -- Feature Flags
 Config.UseGsBlips = true         -- Enable gs_blips integration when available (true/false)
+Config.UseIFMultijob = true      -- Enable IF-multijob integration when available (true/false)
 
 -- Defaults
 Config.DefaultMarkerDistance = 50.0    -- Distance to start rendering markers
